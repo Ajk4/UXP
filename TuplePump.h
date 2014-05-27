@@ -17,10 +17,12 @@ private:
 	static std::string tupleFIFO;
 	static std::string infoFIFO;
 
-	std::string name; //nazwa FIFO
+	std::string tupleName; //nazwa wewntrznego FIFO do synchronizacji odbierania krotek
+	std::string infoName; //nazwa wewntrznego FIFO do synchronizacji odbierania informacji
+	std::string name; //nazwa FIFO do komunikacji miedzyprocesowej
 	TupleMatcher *matcher;
 	bool running; //flaga czy pompa ma pompowac czy sie odlaczyc
-	bool correctlyInitialied; //czy poprawnie udalo sie zainicjalizowac pompe (wszystkie deskryptory etc)
+	bool correctlyInitialized; //czy poprawnie udalo sie zainicjalizowac pompe (wszystkie deskryptory etc)
 
 	int fifo[2]; //deskryptory FIFO do komunikacji miedzyprocesowej
 	int tupleFD[2]; //deskryptory FIFO/pipe sluzacy do odbierania krotek od API (wewnetrzny, wysylajcy fd jest w putTuple, a odbierajacy wewnatrz start)
