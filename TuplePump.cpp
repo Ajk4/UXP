@@ -184,20 +184,28 @@ void *TuplePump::_run(void *ptr) {
 
 			if (FD_ISSET(pump->fifoFD[FIFO_READ], &readSet)) {
 				//standardowe przepompowywanie krotek
-				std::fprintf(stderr, "czytanie\n");
 				read(pump->fifoFD[FIFO_READ], buf, BINARY_TUPLE_LENGTH);
 
-				std::fprintf(stderr, "odebrano krotke z przestrzeni: %c\n", buf[4]);
+				int ttl;
+				std::memcpy(&ttl, buf, 4);
+				int pid;
+				std::memcpy(&pid, buf + 5, 4);
+				std::fprintf(stderr, "[%d] odebrano krotke z przestrzeni: %c, ttl = %d, senderPid = %d\n", getpid(), buf[4], ttl, pid);
 
 				/*int result = pump->matcher->match(buf);
-				if(result == -1 || result == 1) {
+				if(result == -1 || result == 1) {*/
 				//zmniejszyc TTL i wywalic krotke do przestrzeni z powrotem
-				write(pump->fifoFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
-				}
+					--ttl;
+					if(ttl > 0) {
+						std::memcpy(buf, &ttl, 4);
+						write(pump->fifoFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
+					}
+				/*}
 				*/
 
 			}
-
+			//50ms sleep
+			usleep(50000);
 		}
 	} while (pump->running);
 
@@ -233,6 +241,10 @@ void TuplePump::putTuple(const Tuple *t) {
 	unsigned char buf[BINARY_TUPLE_LENGTH];
 	std::memset(buf, 0, BINARY_TUPLE_LENGTH);//[PH]
 	//t->getBinaryRepresentation(buf, DEFAULT_TTL); //NYI
+	int ttl = 10;
+	std::memcpy(buf, &ttl, 4);
+	int pidSender = getpid();
+	std::memcpy(buf + 5, &pidSender, 4);
 	buf[4] = ((++c) % 90) + 33;//[PH] dane binarne krotki
 
 	write(tupleFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);

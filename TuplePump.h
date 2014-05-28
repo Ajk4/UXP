@@ -13,6 +13,7 @@ class TupleMatcher;
  */
 class TuplePump {
 private:
+public://temp
 	friend class TupleSystem;
 
 	static std::string tupleFIFO;
