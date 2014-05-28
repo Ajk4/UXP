@@ -86,24 +86,26 @@ int TuplePump::start(void) {
 		start = false;
 	}
 
-	if ((fifoFD[FIFO_WRITE] = open(name.c_str(), O_RDWR) < 0)) {
+	if ((fifoFD[FIFO_WRITE] = open(name.c_str(), O_RDWR)) < 0) {
 		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
 				infoName.c_str());
 		start = false;
 	}
 
-	if ((fifoFD[FIFO_READ] = open(name.c_str(), O_RDWR) < 0)) {
+	if ((fifoFD[FIFO_READ] = open(name.c_str(), O_RDWR)) < 0) {
 		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
 				name.c_str());
 		start = false;
 	}
 
-	running = true;
-	if ((pthread_create(&thread, nullptr, TuplePump::_run, (void*) this))
-			!= 0) {
-		std::fprintf(stderr, "Nie mozna utworzyc nowego watku\n");
-		start = false;
-		running = false;
+	if(start) {
+		running = true;
+		if ((pthread_create(&thread, nullptr, TuplePump::_run, (void*) this))
+				!= 0) {
+			std::fprintf(stderr, "Nie mozna utworzyc nowego watku\n");
+			start = false;
+			running = false;
+		}
 	}
 
 	if (!start) {
@@ -132,7 +134,7 @@ void *TuplePump::_run(void *ptr) {
 	int sel;
 	unsigned char buf[BINARY_TUPLE_LENGTH];
 
-	while (pump->running) {
+	do {
 		fd_set readSet;
 		FD_ZERO(&readSet);
 
@@ -172,9 +174,12 @@ void *TuplePump::_run(void *ptr) {
 				//zanim ten stop zajdzie
 				int data[1];
 				read(pump->infoFD[FIFO_READ], data, 1);
-				//na te chwile informacja jest tylko o zakonczeniu
-				std::fprintf(stderr, "konczenie\n");
-				return ptr;
+
+				if(data[0] == TERMINATE) {
+					std::fprintf(stderr, "konczenie\n");
+					return ptr;
+				}
+
 			}
 
 			if (FD_ISSET(pump->fifoFD[FIFO_READ], &readSet)) {
@@ -194,7 +199,7 @@ void *TuplePump::_run(void *ptr) {
 			}
 
 		}
-	}
+	} while (pump->running);
 
 	return ptr;
 }
@@ -216,20 +221,11 @@ void TuplePump::stop(void) {
 	close(infoFD[0]);
 	close(infoFD[1]);
 
-	if (unlink((tupleFIFO + std::to_string(getpid())).c_str()) < 0) {
-		std::fprintf(stderr, "nie mozna odlaczyc FIFO wewnetrznego: %s\n",
-				(tupleFIFO + std::to_string(getpid())).c_str());
-	}
+	unlink((tupleFIFO + std::to_string(getpid())).c_str());
 
-	if (unlink((infoFIFO + std::to_string(getpid())).c_str()) < 0) {
-		std::fprintf(stderr, "nie mozna odlaczyc FIFO wewnetrznego: %s\n",
-				(infoFIFO + std::to_string(getpid())).c_str());
-	}
+	unlink((infoFIFO + std::to_string(getpid())).c_str());
 
-	if (unlink(name.c_str()) < 0) {
-		std::fprintf(stderr, "nie mozna odlaczyc FIFO miedzyprocesowego: %s\n",
-				name.c_str());
-	}
+	unlink(name.c_str());
 }
 
 void TuplePump::putTuple(const Tuple *t) {

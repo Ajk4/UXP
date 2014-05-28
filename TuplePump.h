@@ -31,6 +31,10 @@ private:
 	int tupleFD[2]; //deskryptory FIFO/pipe sluzacy do odbierania krotek od API (wewnetrzny, wysylajcy fd jest w putTuple, a odbierajacy wewnatrz start)
 	int infoFD[2]; //deskryptory FIFO/pipe sluzacy do odbioru ktorek o informacji o zakonczeniu itp (wewnetrzne wysylajcy fd jest w stop, a odbierajacy wewnatrz start)
 
+	enum information{
+		TERMINATE
+	};
+
 	/**
 	 * Tylko TupleSystem moze utworzyc pompe i moze ja zniszczyc
 	 * name - nazwa dla potoku nazwanego
