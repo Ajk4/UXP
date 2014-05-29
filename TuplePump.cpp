@@ -47,7 +47,6 @@ TuplePump::TuplePump(const char *name, TupleMatcher *matcher) :
 
 TuplePump::~TuplePump(void) {
 	stop();
-
 }
 
 int TuplePump::start(void) {
@@ -79,6 +78,8 @@ int TuplePump::start(void) {
 		start = false;
 	}
 
+	//jezeli zainicjowano poprawnie wszystkie deskryptory
+	//to uruchom nowy watek pompy z wlasciwa funkcjonalnoscia
 	if(start) {
 		running = true;
 		if ((pthread_create(&thread, nullptr, TuplePump::_run, (void*) this))
@@ -136,26 +137,19 @@ void *TuplePump::_run(void *ptr) {
 		} else {
 			if (FD_ISSET(pump->tupleFD, &readSet)) {
 				//odbierz krotke do wyslania w przestrzen
-
-
 				read(pump->tupleFD, buf, BINARY_TUPLE_LENGTH);
-
-				std::fprintf(stderr, "odebrano krotke do wysylki: %c\n", buf[4]);
-
-				int i = write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
-				std::fprintf(stderr, "wysylanie, kod wyslania: %d/%d\n", i, BINARY_TUPLE_LENGTH);
-				//write(pump->fifo[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
+				//wpisz do przestrzeni
+				write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 			} else if (FD_ISSET(pump->infoFD, &readSet)) {
 				//dotarla jakas informacja (np o zakocnzeniu)
 				//informacje obsluguje sie kiedy nie ma nic do wysylki
 				//dzieki czemu unika sie sytuacji kiedy po kilku wrzuceniach krotek
 				//puszcza sie informacje o stopie wszystkie krotki zostana wyslane
 				//zanim ten stop zajdzie
-				int data[1];
-				read(pump->infoFD, data, 1);
+				int data;
+				read(pump->infoFD, &data, sizeof(int));
 
-				if(data[0] == TERMINATE) {
-					std::fprintf(stderr, "konczenie\n");
+				if(data == TERMINATE) {
 					return ptr;
 				}
 
@@ -163,23 +157,22 @@ void *TuplePump::_run(void *ptr) {
 
 			if (FD_ISSET(pump->fifoFD, &readSet)) {
 				//standardowe przepompowywanie krotek
+
+				//pobierz krotke z przestrzeni
 				read(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 
-				int ttl;
-				std::memcpy(&ttl, buf, 4);
-				int pid;
-				std::memcpy(&pid, buf + 5, 4);
-				std::fprintf(stderr, "[%d] odebrano krotke z przestrzeni: %c, ttl = %d, senderPid = %d\n", getpid(), buf[4], ttl, pid);
-
+				//wyslij na dopasowanie do matchera [NYI]
 				/*int result = pump->matcher->match(buf);
-				if(result == -1 || result == 1) {*/
-				//zmniejszyc TTL i wywalic krotke do przestrzeni z powrotem
+				if(result == -1 || result == 1) { //operacja jest brak dopasowania lub read
+				//zmniejsz TTL i wyslij krotke do przestrzeni jesli mozna
+					int ttl;
+					std::memcpy(&ttl, buf, sizeof(int));
 					--ttl;
 					if(ttl > 0) {
-						std::memcpy(buf, &ttl, 4);
+						std::memcpy(buf, &ttl, sizeof(int));
 						write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 					}
-				/*}
+				}
 				*/
 
 			}
@@ -195,10 +188,11 @@ void *TuplePump::_run(void *ptr) {
 void TuplePump::stop(void) {
 
 	//wyslij informacje o zakonczeniu
-	int info[] = { 1 };
-	write(infoFD, info, sizeof(info));
+	int info = TERMINATE;
+	write(infoFD, &info, sizeof(int));
 
-	//poczekaj na watek obslugujacy pompe
+	//poczekaj na watek obslugujacy pompe az wysle wszystkie
+	//krotki czekajace na wyslanie w przestrzen
 	pthread_join(thread, nullptr);
 
 	//pozamykaj wszystkie deskryptory
@@ -207,22 +201,16 @@ void TuplePump::stop(void) {
 	close(infoFD);
 
 	unlink((tupleFIFO + std::to_string(getpid())).c_str());
-
 	unlink((infoFIFO + std::to_string(getpid())).c_str());
-
 	unlink(name.c_str());
 }
 
 void TuplePump::putTuple(const Tuple *t) {
-	static unsigned char c = (unsigned char)0;//[PH]dane "krotki"
 	unsigned char buf[BINARY_TUPLE_LENGTH];
 	std::memset(buf, 0, BINARY_TUPLE_LENGTH);//[PH]
+
+	//utworz pakiet krotki i wpisz go do bufora, a wartosc TTL ustaw na DEFAULT_TTL
 	//t->getBinaryRepresentation(buf, DEFAULT_TTL); //NYI
-	int ttl = 10;
-	std::memcpy(buf, &ttl, 4);
-	int pidSender = getpid();
-	std::memcpy(buf + 5, &pidSender, 4);
-	buf[4] = ((++c) % 90) + 33;//[PH] dane binarne krotki
 
 	write(tupleFD, buf, BINARY_TUPLE_LENGTH);
 

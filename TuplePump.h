@@ -13,8 +13,6 @@ class TupleMatcher;
  */
 class TuplePump {
 private:
-public://temp
-	friend class TupleSystem;
 
 	static std::string tupleFIFO;
 	static std::string infoFIFO;
@@ -37,8 +35,17 @@ public://temp
 		TERMINATE
 	};
 
+	/*
+	 * wykonuje obsluge zwiazana z pobieraniem krotek,
+	 * Wysylaniem ich do matchera i odsylaniem z powrotem do przestrzeni.
+	 * Wysyla takze nowe krotki w przestrzen.
+	 *
+	 * Metoda dzialajaca w petli, dopoki nie zostanie wywolana metoda stop.
+	 */
+	static void *_run(void *ptr);
+
+public:
 	/**
-	 * Tylko TupleSystem moze utworzyc pompe i moze ja zniszczyc
 	 * name - nazwa dla potoku nazwanego
 	 * matcher - przypisany matcher, do ktorego beda wysylane pobrane krotki z potoku
 	 */
@@ -56,14 +63,7 @@ public://temp
 	 */
 	int start(void);
 
-	/*
-	 * wykonuje obsluge zwiazana z pobieraniem krotek,
-	 * Wysylaniem ich do matchera i odsylaniem z powrotem do przestrzeni.
-	 * Wysyla takze nowe krotki w przestrzen.
-	 *
-	 * Metoda dzialajaca w petli, dopoki nie zostanie wywolana metoda stop.
-	 */
-	static void *_run(void *ptr);
+
 
 	/**
 	 * Zakancza dzialanie pompy i odlacza ja od potoku nazwanego
