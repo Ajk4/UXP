@@ -11,16 +11,15 @@
 #include <cstdio>
 #include <cstring>
 
-#define FIFO_READ 0
-#define FIFO_WRITE 1
 #define PERMS 0666
+#define LOOP_SLEEP_TIME_USEC 50000
 
 std::string TuplePump::tupleFIFO = "/tmp/tupleFIFO.";
 std::string TuplePump::infoFIFO = "/tmp/infoFIFO.";
 
 TuplePump::TuplePump(const char *name, TupleMatcher *matcher) :
 		name(name), matcher(matcher), running(false), correctlyInitialized(
-				true), fifoFD { -1, -1 }, tupleFD { -1, -1 }, infoFD { -1, -1 } {
+				true), fifoFD(-1), tupleFD(-1), infoFD(-1) {
 
 	tupleName = tupleFIFO + std::to_string(getpid());
 	infoName = infoFIFO + std::to_string(getpid());
@@ -62,38 +61,20 @@ int TuplePump::start(void) {
 	//zmienna czy mozna zastartowac po dolaczeniu do potokow
 	bool start = true;
 
-	if ((tupleFD[FIFO_WRITE] = open(tupleName.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
+	if ((tupleFD = open(tupleName.c_str(), O_RDWR)) < 0) {
+		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s\n",
 				tupleName.c_str());
 		start = false;
 	}
 
-	if ((tupleFD[FIFO_READ] = open(tupleName.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
-				tupleName.c_str());
-		start = false;
-	}
-
-	if ((infoFD[FIFO_WRITE] = open(infoName.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
+	if ((infoFD = open(infoName.c_str(), O_RDWR)) < 0) {
+		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s\n",
 				infoName.c_str());
 		start = false;
 	}
 
-	if ((infoFD[FIFO_READ] = open(infoName.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
-				infoName.c_str());
-		start = false;
-	}
-
-	if ((fifoFD[FIFO_WRITE] = open(name.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
-				infoName.c_str());
-		start = false;
-	}
-
-	if ((fifoFD[FIFO_READ] = open(name.c_str(), O_RDWR)) < 0) {
-		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s",
+	if ((fifoFD = open(name.c_str(), O_RDWR)) < 0) {
+		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s\n",
 				name.c_str());
 		start = false;
 	}
@@ -119,28 +100,26 @@ int TuplePump::start(void) {
 void *TuplePump::_run(void *ptr) {
 
 	auto pump = (TuplePump*) ptr;
-	std::fprintf(stderr, "new thread\n");
 
-	//znajdz deskryptor o najwieszej wartosci
+	//znajdz deskryptor o najwieszej wartosci dla funkcji select
 	int maxFD =
-			pump->fifoFD[FIFO_READ] > pump->infoFD[FIFO_READ] ?
-					(pump->fifoFD[FIFO_READ] > pump->tupleFD[FIFO_READ] ?
-							pump->fifoFD[FIFO_READ] : pump->tupleFD[FIFO_READ]) :
-					(pump->infoFD[FIFO_READ] > pump->tupleFD[FIFO_READ] ?
-							pump->infoFD[FIFO_READ] : pump->tupleFD[FIFO_READ]);
+			pump->fifoFD > pump->infoFD ?
+					(pump->fifoFD > pump->tupleFD ?
+							pump->fifoFD : pump->tupleFD) :
+					(pump->infoFD > pump->tupleFD ?
+							pump->infoFD : pump->tupleFD);
 
-
-	std::fprintf(stderr, "FDs: %d, %d, %d, maxFD = %d\n", pump->fifoFD[FIFO_READ], pump->infoFD[FIFO_READ], pump->tupleFD[FIFO_READ], maxFD);
 	int sel;
 	unsigned char buf[BINARY_TUPLE_LENGTH];
+	fd_set readSet;
 
 	do {
-		fd_set readSet;
+
 		FD_ZERO(&readSet);
 
-		FD_SET(pump->fifoFD[FIFO_READ], &readSet);
-		FD_SET(pump->infoFD[FIFO_READ], &readSet);
-		FD_SET(pump->tupleFD[FIFO_READ], &readSet);
+		FD_SET(pump->fifoFD, &readSet);
+		FD_SET(pump->infoFD, &readSet);
+		FD_SET(pump->tupleFD, &readSet);
 
 		struct timeval tv;
 		tv.tv_sec = 1;
@@ -155,25 +134,25 @@ void *TuplePump::_run(void *ptr) {
 		} else if (sel == 0) {
 			std::fprintf(stderr, "timeout\n");
 		} else {
-			if (FD_ISSET(pump->tupleFD[FIFO_READ], &readSet)) {
+			if (FD_ISSET(pump->tupleFD, &readSet)) {
 				//odbierz krotke do wyslania w przestrzen
 
 
-				read(pump->tupleFD[FIFO_READ], buf, BINARY_TUPLE_LENGTH);
+				read(pump->tupleFD, buf, BINARY_TUPLE_LENGTH);
 
 				std::fprintf(stderr, "odebrano krotke do wysylki: %c\n", buf[4]);
 
-				int i = write(pump->fifoFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
+				int i = write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 				std::fprintf(stderr, "wysylanie, kod wyslania: %d/%d\n", i, BINARY_TUPLE_LENGTH);
 				//write(pump->fifo[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
-			} else if (FD_ISSET(pump->infoFD[FIFO_READ], &readSet)) {
+			} else if (FD_ISSET(pump->infoFD, &readSet)) {
 				//dotarla jakas informacja (np o zakocnzeniu)
 				//informacje obsluguje sie kiedy nie ma nic do wysylki
 				//dzieki czemu unika sie sytuacji kiedy po kilku wrzuceniach krotek
 				//puszcza sie informacje o stopie wszystkie krotki zostana wyslane
 				//zanim ten stop zajdzie
 				int data[1];
-				read(pump->infoFD[FIFO_READ], data, 1);
+				read(pump->infoFD, data, 1);
 
 				if(data[0] == TERMINATE) {
 					std::fprintf(stderr, "konczenie\n");
@@ -182,9 +161,9 @@ void *TuplePump::_run(void *ptr) {
 
 			}
 
-			if (FD_ISSET(pump->fifoFD[FIFO_READ], &readSet)) {
+			if (FD_ISSET(pump->fifoFD, &readSet)) {
 				//standardowe przepompowywanie krotek
-				read(pump->fifoFD[FIFO_READ], buf, BINARY_TUPLE_LENGTH);
+				read(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 
 				int ttl;
 				std::memcpy(&ttl, buf, 4);
@@ -198,14 +177,15 @@ void *TuplePump::_run(void *ptr) {
 					--ttl;
 					if(ttl > 0) {
 						std::memcpy(buf, &ttl, 4);
-						write(pump->fifoFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
+						write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 					}
 				/*}
 				*/
 
 			}
-			//50ms sleep
-			usleep(50000);
+
+			//loop sleep
+			usleep(LOOP_SLEEP_TIME_USEC);
 		}
 	} while (pump->running);
 
@@ -216,18 +196,15 @@ void TuplePump::stop(void) {
 
 	//wyslij informacje o zakonczeniu
 	int info[] = { 1 };
-	write(infoFD[FIFO_WRITE], info, sizeof(info));
+	write(infoFD, info, sizeof(info));
 
 	//poczekaj na watek obslugujacy pompe
 	pthread_join(thread, nullptr);
 
 	//pozamykaj wszystkie deskryptory
-	close(fifoFD[0]);
-	close(fifoFD[1]);
-	close(tupleFD[0]);
-	close(tupleFD[1]);
-	close(infoFD[0]);
-	close(infoFD[1]);
+	close(fifoFD);
+	close(tupleFD);
+	close(infoFD);
 
 	unlink((tupleFIFO + std::to_string(getpid())).c_str());
 
@@ -247,6 +224,6 @@ void TuplePump::putTuple(const Tuple *t) {
 	std::memcpy(buf + 5, &pidSender, 4);
 	buf[4] = ((++c) % 90) + 33;//[PH] dane binarne krotki
 
-	write(tupleFD[FIFO_WRITE], buf, BINARY_TUPLE_LENGTH);
+	write(tupleFD, buf, BINARY_TUPLE_LENGTH);
 
 }

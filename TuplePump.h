@@ -28,10 +28,11 @@ public://temp
 	bool correctlyInitialized; //czy poprawnie udalo sie zainicjalizowac pompe (wszystkie deskryptory etc)
 	pthread_t thread;
 
-	int fifoFD[2]; //deskryptory FIFO do komunikacji miedzyprocesowej
-	int tupleFD[2]; //deskryptory FIFO/pipe sluzacy do odbierania krotek od API (wewnetrzny, wysylajcy fd jest w putTuple, a odbierajacy wewnatrz start)
-	int infoFD[2]; //deskryptory FIFO/pipe sluzacy do odbioru ktorek o informacji o zakonczeniu itp (wewnetrzne wysylajcy fd jest w stop, a odbierajacy wewnatrz start)
+	int fifoFD; //deskryptor FIFO do komunikacji miedzyprocesowej
+	int tupleFD; //deskryptor FIFO sluzacy do odbierania krotek od API (wewnetrzny, wysylajcy fd jest w putTuple, a odbierajacy wewnatrz start)
+	int infoFD; //deskryptor FIFO sluzacy do odbioru ktorek o informacji o zakonczeniu itp (wewnetrzne wysylajcy fd jest w stop, a odbierajacy wewnatrz start)
 
+	//informacje jakie przez infoFD beda przesylane
 	enum information{
 		TERMINATE
 	};
