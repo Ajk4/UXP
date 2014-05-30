@@ -32,22 +32,66 @@ void TupleMatcher::timeoutOccured(void)
 
 }
 
+bool TupleMatcher::CheckInteger(unsigned char *binaryInt, int intPattern, int relOp)
+{
+	int integer = 0;
+	int CompareResult;	
+	for(int i=0; i<4; i++, binaryInt++)
+	{
+		integer = integer << 8;
+		integer = integer | *binaryInt;
+	}
+
+	CompareResult = CompareIntegers(integer, intPattern);
+
+	if(RelationResult(CompareResult, relOp))
+	{
+		return true;
+	}
+	return false;
+}
+
+
+bool TupleMatcher::CheckFloat(unsigned char *binaryFloat, int floatPattern, int relOp)
+{
+	union {
+		int integer;
+		float floatVariable;
+	} conversionUnion;
+
+	int NotYetFloat = 0;
+	int CompareResult;	
+	float floatResult;
+	for(int i=0; i<4; i++, binaryFloat++)
+	{
+		NotYetFloat = NotYetFloat << 8;
+		NotYetFloat = NotYetFloat | *binaryFloat;
+	}
+	std::cout <<"odebrano x " << NotYetFloat << std::endl;
+	conversionUnion.integer = NotYetFloat;
+	floatResult = conversionUnion.floatVariable;
+	std::cout <<"uzyskano Float: " << floatResult<< std::endl;
+	CompareResult = CompareIntegers(floatResult, floatPattern);
+
+	if(RelationResult(CompareResult, relOp))
+	{
+		return true;
+	}
+	return false;
+}
+
 bool TupleMatcher::CheckString(unsigned char *binaryString, std::string stringPattern, int relOp)
 {
 	char character = 0x00;
 	int CompareResult;
 	std::string 	str = "";
-	bool endStringToken = true;
 	for(int i =0; i< MAX_STRING_LEN; i++)
 	{
-		if(endStringToken)
-		{
-			character = character | *binaryString;
-			str += character;
-			if(character == '\0') endStringToken = false;
-			character = 0x00;
-			binaryString++;
-		}
+		character = character | *binaryString;
+		str += character;
+		if(character == '\0') break;
+		character = 0x00;
+		binaryString++;
 	}
 	CompareResult = CompareStrings(str, stringPattern);	
 	if(RelationResult(CompareResult, relOp)) 

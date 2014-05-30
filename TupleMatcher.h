@@ -10,6 +10,7 @@ class Tuple;
  */
 class TupleMatcher {
 	//wzorzec, ktorego dopasowania szuka
+
 	TuplePattern *pattern;
 	
 	Tuple *result;
@@ -54,6 +55,8 @@ public:
 	/*tylko dla testow publiczne*/
 
 	bool CheckString(unsigned char *binaryString, std::string stringPattern, int relOp);
+	bool CheckInteger(unsigned char *binaryInt, int intPattern, int relOp);
+	bool CheckFloat(unsigned char *binaryFloat, int floatPattern, int relOp);
 	int CompareStrings(std::string newString, std::string pattern);
 	int CompareIntegers(int newInteger, int pattern);
 	int CompareFloats(float newInteger, float pattern);
