@@ -1,24 +1,23 @@
 #include <iostream>
 #include "TupleMatcher.h"
 #include "TuplePattern.h"
-union {
-	int integer;
-	float floatVariable;
-} conversionUnion;
-
+#include <cstring>
 int main(int argc, char **argv) {
 
 	for(int i = 0; i < argc; ++i) {
 		std::cout << argv[i] << std::endl;
 	}
 
-	unsigned char tab[4]  = { 0x0,0x0,0x0, 0xFA};
-	conversionUnion.integer  = 0xFA;
-	float x =conversionUnion.floatVariable;
-	std::cout <<"wysłano x " << x << std::endl;
+	unsigned char tab[] = "krotka";
+	//loat i =13.25;
+	//memcpy(tab, &i, 4);
+	//conversionUnion.integer  = 0xFA;
+	//float x =conversionUnion.floatVariable;
+	//std::cout <<"wysłano x " << x << std::endl;
 	TupleMatcher *match;
 	match = new TupleMatcher(1);
-	match->CheckFloat(tab, 1.23, 0);
+	if(match->CheckString(tab,"Krotka" , 0))
+		std::cout << "prawda " <<std::endl;
 
 
 	/*unsigned char testchar[] = {0x00, 0x00, 0x01, 0x04};

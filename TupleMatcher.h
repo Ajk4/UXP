@@ -2,7 +2,7 @@
 #define TUPLE_MATCHER_H
 
 #include "TuplePattern.h"
-
+#include "Tuple.h"
 class TuplePattern;
 class Tuple;
 /*
@@ -10,10 +10,16 @@ class Tuple;
  */
 class TupleMatcher {
 	//wzorzec, ktorego dopasowania szuka
-
+	enum Type{
+	STRING = Tuple::TupleElement::Type::STRING,
+	INT =	 Tuple::TupleElement::Type::INT,
+	FLOAT =	 Tuple::TupleElement::Type::FLOAT,
+	UNKNOWN =Tuple::TupleElement::Type::UNKNOWN
+	};
+	
 	TuplePattern *pattern;
 	
-	Tuple *result;
+	Tuple *tuple;
 	//deskryptory FIFO/pipe do komunikacji z API
 	int tupleSendFD; //odsylanie krotki
 	int infoFD[2]; //odbior informacji od API (np. o timeoucie) (wewnetrzne, w timeoutOccured
