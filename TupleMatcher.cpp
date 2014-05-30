@@ -1,5 +1,6 @@
 #include "TupleMatcher.h"
 #include <string>
+#include <cstring>
 #include <iostream>
 
 
@@ -7,15 +8,55 @@ TupleMatcher::TupleMatcher(int tupleSendFD)
 {
 	this->tupleSendFD = tupleSendFD;
 	pattern = NULL;
-	
+	tuple == NULL;	
 }
 
 
 
 int TupleMatcher::match(unsigned char *binaryTuple)
 {
+	int i;
+	int type;
+	bool CheckResult = true;
+	/*tuple = new Tuple();*/
 	if( pattern == NULL ) return -1;
 	
+	/*rozpoczyna proces sprawdzania*/
+	/*pomijam TTL*/
+	binaryTuple +=2;
+	for(i = 0; i< TUPLE_ELEMENTS; i++)
+	{
+		memcpy(&type, binaryTuple,1);
+		binaryTuple += 1;
+		if(pattern->elements[i]->dataType == type)
+		{
+			if(type == UNKNOWN ) break;
+			switch(type)
+			{
+				case(STRING) 	: CheckResult = CheckString(binaryTuple, pattern->elements[i]->str, pattern->elements[i]->relOP); break; 
+				case(INT)	: CheckResult = CheckInteger(binaryTuple, pattern->elements[i]->i, pattern->elements[i]->relOP); break;	
+				case(FLOAT)	: CheckResult = CheckFloat(binaryTuple, pattern->elements[i]->f, pattern->elements[i]->relOP); break;
+			}
+			if(CheckResult)				
+			{
+				switch(type)
+				{
+					/*case(STRING)	: tuple->append(pattern->elements[i]->str); break;
+					case(INT)	: tuple->append(pattern->elements[i]->i); break;
+					case(FLOAT)	: tuple->append(pattern->elements[i]->f); break;
+					*/
+				}
+				binaryTuple += MAX_STRING_LEN;
+				continue;
+			}
+		}
+		/*Jeśli nastąpil blad w czytaniu krotki*/
+		/*delete tuple;*/
+		return -1;
+			
+
+	}
+	/*powodzenie mozna wziac tuple*/	
 	return 1;
 }
 
@@ -28,22 +69,17 @@ void TupleMatcher::putPattern(TuplePattern *pattern)
 
 void TupleMatcher::timeoutOccured(void)
 {
-
+	pattern = NULL;
 
 }
 
 bool TupleMatcher::CheckInteger(unsigned char *binaryInt, int intPattern, int relOp)
 {
 	int integer = 0;
-	int CompareResult;	
-	for(int i=0; i<4; i++, binaryInt++)
-	{
-		integer = integer << 8;
-		integer = integer | *binaryInt;
-	}
-
+	int CompareResult;
+	memcpy(&integer, binaryInt, 4);
 	CompareResult = CompareIntegers(integer, intPattern);
-
+	
 	if(RelationResult(CompareResult, relOp))
 	{
 		return true;
@@ -54,23 +90,10 @@ bool TupleMatcher::CheckInteger(unsigned char *binaryInt, int intPattern, int re
 
 bool TupleMatcher::CheckFloat(unsigned char *binaryFloat, int floatPattern, int relOp)
 {
-	union {
-		int integer;
-		float floatVariable;
-	} conversionUnion;
-
-	int NotYetFloat = 0;
-	int CompareResult;	
+	int CompareResult;
 	float floatResult;
-	for(int i=0; i<4; i++, binaryFloat++)
-	{
-		NotYetFloat = NotYetFloat << 8;
-		NotYetFloat = NotYetFloat | *binaryFloat;
-	}
-	std::cout <<"odebrano x " << NotYetFloat << std::endl;
-	conversionUnion.integer = NotYetFloat;
-	floatResult = conversionUnion.floatVariable;
-	std::cout <<"uzyskano Float: " << floatResult<< std::endl;
+	memcpy(&floatResult, binaryFloat, 4);
+	
 	CompareResult = CompareIntegers(floatResult, floatPattern);
 
 	if(RelationResult(CompareResult, relOp))
@@ -124,28 +147,16 @@ bool TupleMatcher::RelationResult(int CompareResult, int patternOperator)
 
 int TupleMatcher::CompareStrings(std::string newString, std::string pattern)
 {
-	int len;
-	if(newString.size() >= newString.size())
-		len = pattern.size();
-	else
-		len = newString.size();
-
-	for(int i = 0; i<len; i++)
-	{
-		if(newString[i] > pattern[i]) return TuplePattern::GT;
-		else if( newString[i] < pattern[i] ) return TuplePattern::LT;
-	}
-	
-	if(newString.size()==pattern.size()) return TuplePattern::EQ;
-	else if( newString.size() > pattern.size()) return TuplePattern::GT;
-	else return TuplePattern::LT;
+	if( newString > pattern ) 	return TuplePattern::GT;
+	else if( newString < pattern) 	return TuplePattern::LT;
+	else 				return TuplePattern::EQ;
 }
 
 int TupleMatcher::CompareIntegers(int newInteger, int pattern)
 {
-	if ( newInteger > pattern ) return TuplePattern::GT;
-	else if ( newInteger < pattern ) return TuplePattern::LT;
-	else return TuplePattern::EQ;
+	if ( newInteger > pattern ) 	return TuplePattern::GT;
+	else if( newInteger < pattern ) return TuplePattern::LT;
+	else 				return TuplePattern::EQ;
 }
 
 int TupleMatcher::CompareFloats(float newInteger, float pattern)
