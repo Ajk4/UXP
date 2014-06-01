@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <string>
+#include "OperationCode.h"
 
 #define TUPLE_ELEMENTS 		10
 #define MAX_STRING_LEN		10
@@ -25,21 +26,22 @@ private:
 
 	//przechowuje elementy krotki
 	TupleElement *elements[TUPLE_ELEMENTS];
+    int actualTupleIndex = 0;
 
 public:
 	Tuple(void);
 	~Tuple(void);
 
 	//dopisuje do krotki nowy element, wartosc zwracana informuje o wyniku operacji
-	int append(const std::string &value);
-	int append(int value);
-	int append(float value);
+    int append(const std::string &value);
+    int append(int value);
+    int append(float value);
 
 	//zwracaja w drugim parametrze wartosc z podanego indeksu
 	//w krotce
-	void get(int idx, std::string &out);
-	void get(int idx, int &out);
-	void get(int idx, float &out);
+    int get(int idx, std::string &out);
+    int get(int idx, int &out);
+    int get(int idx, float &out);
 
 	//konwertuje krotke na jej postac binarna i zapisuje do buf
 	void getBinaryRepresentation(unsigned char *buf, int ttl);

@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Tuple.h"
+#include "OperationCode.h"
 
 /*
  * klasa reprezentująca wzorzec krotki
@@ -36,9 +37,11 @@ public:
 	//przechowuje elementy wzorca
 	TuplePatternElement *elements[TUPLE_ELEMENTS];
 
-	void appendString(relOp op, std::string value = INVALID_STRING);
-	void appendInt(relOp op, int value = INVALID_INT);
-	void appendFloat(relOp op, float value = INVALID_FLOAT);
+    int actualElementIndex = 0;
+
+    int appendString(relOp op, std::string value = INVALID_STRING);
+    int appendInt(relOp op, int value = INVALID_INT);
+    int appendFloat(relOp op, float value = INVALID_FLOAT);
 };
 
 /**
@@ -50,9 +53,9 @@ struct TuplePattern::TuplePatternElement : public Tuple::TupleElement{
 	int relOP;
 
 	//konstruuje obiekt w zaleznosci od podanego typu danych
-	TuplePatternElement(const std::string &s);
-	TuplePatternElement(int i);
-	TuplePatternElement(float f);
+    TuplePatternElement(int relOp, const std::string &s);
+    TuplePatternElement(int relOp, int i);
+    TuplePatternElement(int relOp, float f);
 };
 
 #endif
