@@ -1,10 +1,12 @@
 CC=g++
 CFLAGS=-Wall -pedantic -W -pthread -std=c++11
 
+interpeter: interpreter
+	$(CC) $(CFLAGS) interpreter.cpp  Tuple.cpp
+
 all: main.o Tuple.o TupleMatcher.o TuplePattern.o TuplePump.o TupleSystem.o
 	$(CC) $(CFLAGS) main.o Tuple.o TupleMatcher.o TuplePattern.o TuplePump.o TupleSystem.o
-	
-	
+
 main.o:
 	$(CC) $(CFLAGS) -c main.cpp
 	
