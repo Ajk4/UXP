@@ -1,14 +1,25 @@
 #ifndef TUPLE_MATCHER_H
 #define TUPLE_MATCHER_H
 
+#include "TuplePattern.h"
+#include "Tuple.h"
 class TuplePattern;
+class Tuple;
 /*
  * klasa sprawdzajaca dopasowanie krotki do wzorca
  */
 class TupleMatcher {
 	//wzorzec, ktorego dopasowania szuka
+	enum Type{
+	STRING = Tuple::TupleElement::Type::STRING,
+	INT =	 Tuple::TupleElement::Type::INT,
+	FLOAT =	 Tuple::TupleElement::Type::FLOAT,
+	UNKNOWN =Tuple::TupleElement::Type::UNKNOWN
+	};
+	
 	TuplePattern *pattern;
-
+	
+	Tuple *tuple;
 	//deskryptory FIFO/pipe do komunikacji z API
 	int tupleSendFD; //odsylanie krotki
 	int infoFD[2]; //odbior informacji od API (np. o timeoucie) (wewnetrzne, w timeoutOccured
@@ -17,6 +28,8 @@ class TupleMatcher {
 	//wewnetrzny deskryptor FIFO/pipe do odbioru wzorcow krotek (wewnetrzne, w putPattern
 	//jest deskryptor "wysylajacy", a w match "odbierajacy")
 	int patternFD [2];
+
+	bool RelationResult(int CompareResult, int patternOperator);
 
 public:
 	TupleMatcher(int tupleSendFD);
@@ -44,6 +57,16 @@ public:
 
 	//informuje o zajsciu timeoutu
 	void timeoutOccured(void);
+
+	/*tylko dla testow publiczne*/
+
+	bool CheckString(unsigned char *binaryString, std::string stringPattern, int relOp);
+	bool CheckInteger(unsigned char *binaryInt, int intPattern, int relOp);
+	bool CheckFloat(unsigned char *binaryFloat, int floatPattern, int relOp);
+	int CompareStrings(std::string newString, std::string pattern);
+	int CompareIntegers(int newInteger, int pattern);
+	int CompareFloats(float newInteger, float pattern);
+
 };
 
 #endif
