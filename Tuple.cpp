@@ -1,5 +1,5 @@
 #include "Tuple.h"
-
+#include <cstring>
 
 int Tuple::append(const std::string &value)
 {
@@ -74,6 +74,49 @@ int Tuple::get(int idx, float &out)
         out = tupleElement->f;
         return OperationCode::OK;
     }
+}
+
+void Tuple::getBinaryRepresentation(unsigned char *buf, int ttl) {
+
+	//wyresetuj bufor
+	std::memset(buf, 0, BINARY_TUPLE_LENGTH);
+
+	//zapisz ttl
+	std::memcpy(buf, &ttl, sizeof(ttl));
+
+	auto curBufPos = buf + sizeof(int);
+	float tupleF = 0.0f;
+	int tupleI = 0;
+	std::string tupleS = "";
+
+	for(int i = 0; i < actualTupleIndex; ++i) {
+		//zapisz typ elementu
+		*curBufPos = (unsigned char)elements[i]->dataType;
+		//przesun wskaznik na dane
+		++curBufPos;
+
+		//zapisz dane
+		switch(elements[i]->dataType) {
+		case TupleElement::FLOAT:
+			tupleF = elements[i]->f;
+			std::memcpy(curBufPos, &tupleF, sizeof(tupleF));
+			break;
+		case TupleElement::INT:
+			tupleI = elements[i]->i;
+			std::memcpy(curBufPos, &tupleI, sizeof(tupleI));
+		case TupleElement::STRING:
+			tupleS = elements[i]->str;
+			std::memcpy(curBufPos, tupleS.c_str(), tupleS.size());
+		}
+
+		curBufPos += MAX_STRING_LEN;
+	}
+
+	//dane sie skonczyly, powpisuj nieznany typ danych
+	for(int i = actualTupleIndex; i < MAX_STRING_LEN; ++i) {
+		*curBufPos = TupleElement::UNKNOWN;
+		curBufPos += MAX_STRING_LEN + 1;
+	}
 }
 
 

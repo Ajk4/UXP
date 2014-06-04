@@ -6,7 +6,7 @@
 #include "OperationCode.h"
 
 #define TUPLE_ELEMENTS 		10
-#define MAX_STRING_LEN		10
+#define MAX_STRING_LEN		10 //ze znakiem \0!
 
 //wartosci danych a krotki interpretowane jako niepoprawne
 #define INVALID_STRING 		""
@@ -56,10 +56,11 @@ public:
 struct Tuple::TupleElement {
 	//typ danych przechowywany w strukturze
 	enum Type {
-		STRING = 0,
+		UNKNOWN = 0,
+		STRING,
 		INT,
 		FLOAT,
-		UNKNOWN
+
 	};
 
 	//przechowywany typ danych
