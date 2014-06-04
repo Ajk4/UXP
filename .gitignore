@@ -19,3 +19,10 @@
 *.exe
 *.out
 *.app
+
+# QT 
+*.config
+*.creator
+*.creator.user
+*.files
+*.includes
