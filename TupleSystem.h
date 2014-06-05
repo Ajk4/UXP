@@ -1,6 +1,11 @@
 #ifndef TUPLE_SYSTEM_H
 #define TUPLE_SYSTEM_H
 
+#include "TuplePump.h"
+#include "TupleMatcher.h"
+
+#define ADDR_SIZE 8
+
 class Tuple;
 class TupleMatcher;
 class TuplePattern;
@@ -13,6 +18,8 @@ class TupleSystem {
 private:
 	//poprzez FIFO/pipe pokazywane przez ten deskryptor przyjdzie krotka
 	int tupleRecvFD;
+
+    unsigned char tupleAddrBuff[ADDR_SIZE];
 
 	TupleMatcher *matcher;
 	TuplePump *pump;
@@ -38,8 +45,8 @@ public:
 	 *
 	 * Operacja Input usuwa krotke z przestrzeni, Read pozostawia ja.
 	 */
-	int lindaInput(TuplePattern *pattern, int timeout, Tuple *output);
-	int lindaRead(TuplePattern *pattern, int timeout, Tuple *output);
+    int lindaInput(TuplePattern *pattern, int timeout, Tuple **output);
+    int lindaRead(TuplePattern *pattern, int timeout, Tuple **output);
 };
 
 #endif
