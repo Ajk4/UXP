@@ -61,6 +61,7 @@ int TupleMatcher::match(unsigned char *binaryTuple)
 	}
 	/*powodzenie mozna wziac tuple*/
 	write(tupleSendFD, tuple, sizeof(tuple));	
+	pattern = NULL;
 	if(pattern->operation == TuplePattern::opType::READ) return 1;
 	return 0;
 }
