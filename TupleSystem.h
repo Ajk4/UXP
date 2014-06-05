@@ -1,6 +1,9 @@
 #ifndef TUPLE_SYSTEM_H
 #define TUPLE_SYSTEM_H
 
+#include "TuplePump.h"
+#include "TupleMatcher.h"
+
 class Tuple;
 class TupleMatcher;
 class TuplePattern;
