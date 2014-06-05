@@ -4,11 +4,8 @@ CFLAGS=-Wall -pedantic -W -pthread -std=c++11
 all: interpreter.o main.o Tuple.o TupleMatcher.o TuplePattern.o TuplePump.o TupleSystem.o
 	$(CC) $(CFLAGS) main.o Tuple.o TupleMatcher.o TuplePattern.o TuplePump.o TupleSystem.o
 
-sender:
-	$(CC) $(CFLAGS) -c sender.cpp
-	
-receiver:
-	$(CC) $(CFLAGS) -c receiver.cpp
+TupleSystem.o:
+	$(CC) $(CFLAGS) -c TupleSystem.cpp
 
 main.o:
 	$(CC) $(CFLAGS) -c main.cpp
