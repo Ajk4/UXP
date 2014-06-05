@@ -2,7 +2,8 @@
 #include <string>
 #include <cstring>
 #include <iostream>
-
+#include <unistd.h>
+#include <sys/types.h>
 
 TupleMatcher::TupleMatcher(int tupleSendFD)
 {
@@ -15,20 +16,23 @@ TupleMatcher::TupleMatcher(int tupleSendFD)
 
 int TupleMatcher::match(unsigned char *binaryTuple)
 {
+	std::cout << "matcher" <<std::endl;
 	int i;
-	int type;
+	char type;
 	bool CheckResult = true;
-	/*tuple = new Tuple();*/
-	if( pattern == NULL ) return -1;
+	tuple = new Tuple();
+	if( pattern == NULL ) return -90;
 	
 	/*rozpoczyna proces sprawdzania*/
 	/*pomijam TTL*/
-	binaryTuple +=2;
+	binaryTuple +=4;
 	for(i = 0; i< TUPLE_ELEMENTS; i++)
 	{
+
 		memcpy(&type, binaryTuple,1);
 		binaryTuple += 1;
-		if(pattern->elements[i]->dataType == type)
+		if(pattern->elements[i] == NULL) break;
+		else if(pattern->elements[i]->dataType == type)
 		{
 			if(type == UNKNOWN ) break;
 			switch(type)
@@ -41,23 +45,24 @@ int TupleMatcher::match(unsigned char *binaryTuple)
 			{
 				switch(type)
 				{
-					/*case(STRING)	: tuple->append(pattern->elements[i]->str); break;
+					case(STRING)	: tuple->append(pattern->elements[i]->str); break;
 					case(INT)	: tuple->append(pattern->elements[i]->i); break;
 					case(FLOAT)	: tuple->append(pattern->elements[i]->f); break;
-					*/
 				}
 				binaryTuple += MAX_STRING_LEN;
 				continue;
 			}
 		}
 		/*Jeśli nastąpil blad w czytaniu krotki*/
-		/*delete tuple;*/
+		delete tuple;
 		return -1;
 			
 
 	}
-	/*powodzenie mozna wziac tuple*/	
-	return 1;
+	/*powodzenie mozna wziac tuple*/
+	write(tupleSendFD, tuple, sizeof(tuple));	
+	if(pattern->operation == TuplePattern::opType::READ) return 1;
+	return 0;
 }
 
 
@@ -79,7 +84,6 @@ bool TupleMatcher::CheckInteger(unsigned char *binaryInt, int intPattern, int re
 	int CompareResult;
 	memcpy(&integer, binaryInt, 4);
 	CompareResult = CompareIntegers(integer, intPattern);
-	
 	if(RelationResult(CompareResult, relOp))
 	{
 		return true;
@@ -94,7 +98,7 @@ bool TupleMatcher::CheckFloat(unsigned char *binaryFloat, int floatPattern, int 
 	float floatResult;
 	memcpy(&floatResult, binaryFloat, 4);
 	
-	CompareResult = CompareIntegers(floatResult, floatPattern);
+	CompareResult = CompareFloats(floatResult, floatPattern);
 
 	if(RelationResult(CompareResult, relOp))
 	{
@@ -111,8 +115,8 @@ bool TupleMatcher::CheckString(unsigned char *binaryString, std::string stringPa
 	for(int i =0; i< MAX_STRING_LEN; i++)
 	{
 		character = character | *binaryString;
-		str += character;
 		if(character == '\0') break;
+		str += character;
 		character = 0x00;
 		binaryString++;
 	}
@@ -161,7 +165,7 @@ int TupleMatcher::CompareIntegers(int newInteger, int pattern)
 
 int TupleMatcher::CompareFloats(float newInteger, float pattern)
 {
-	if ( newInteger > pattern ) return TuplePattern::GT;
-	else if ( newInteger < pattern ) return TuplePattern::LT;
-	else return TuplePattern::EQ;
+	if ( newInteger > pattern ) 		return TuplePattern::GT;
+	else if ( newInteger < pattern ) 	return TuplePattern::LT;
+	else 					return TuplePattern::EQ;
 }

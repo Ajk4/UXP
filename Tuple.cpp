@@ -1,6 +1,13 @@
 #include "Tuple.h"
 #include <cstring>
-
+Tuple::Tuple()
+{
+	 actualTupleIndex = 0;
+}
+Tuple::~Tuple()
+{
+  
+}
 int Tuple::append(const std::string &value)
 {
     if(actualTupleIndex >= TUPLE_ELEMENTS){
