@@ -2,8 +2,8 @@
 
 void TupleSystem::lindaOpen(const char *name)
 {
-    Matcher *matcher = NULL;// TODO
-    this->pump = new TuplePump(name, matcher);
+    this->matcher = NULL;//TODO
+    this->pump = new TuplePump(name, this->matcher);
     this->pump->start();
 }
 
@@ -21,12 +21,12 @@ void TupleSystem::lindaOutput(Tuple *tuple)
 
 int TupleSystem::lindaInput(TuplePattern *pattern, int timeout, Tuple *output)
 {
-    matcher->putPattern(patter);
+    matcher->putPattern(pattern);
     // TODO brakuje mechanizmu odbioru
 }
 
 int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple *output)
 {
-    matcher->putPattern(patter);
+    matcher->putPattern(pattern);
     // TODO brakuje mechanizmu odbioru
 }
