@@ -7,11 +7,6 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
-TupleSystem::~TupleSystem()
-{
-
-}
-
 void TupleSystem::lindaOpen(const char *name)
 {
     int fds[2];
@@ -42,21 +37,33 @@ void TupleSystem::lindaOutput(Tuple *tuple)
 int TupleSystem::lindaInput(TuplePattern *pattern, int timeout, Tuple **output)
 {
     fd_set set;
-    FD_ZERO(&set);
-    FD_SET(tupleRecvFD, &set);
     struct timeval TimeOut;
     Tuple *tupleAddr;
     int rv;
     
+    
+    FD_ZERO(&set);
+    FD_SET(tupleRecvFD, &set);
+    
     pattern->setOperationType(TuplePattern::INPUT);
     matcher->putPattern(pattern);
+    
     TimeOut.tv_sec = timeout;
     TimeOut.tv_usec = 0;
+    
     rv = select(tupleRecvFD+1, &set, NULL, NULL, &TimeOut);
-    if(rv == -1)
-    {matcher->timeoutOccured();std::cout<< "err"<<std::endl; return 0;}/* an error accured */
-    else if(rv == 0)
-    {matcher->timeoutOccured();std::cout<< "time"<<std::endl; return 0;} /* a timeout occured */
+    if(rv == -1)/* an error accured */
+    {
+        matcher->timeoutOccured(); 
+        return 0;
+        
+    }
+    else if(rv == 0) /* a timeout occured */
+    {
+        matcher->timeoutOccured();
+        return 0;
+        
+    }
     else
       read(tupleRecvFD, &tupleAddr, sizeof(tupleAddr));
     *output = tupleAddr;
@@ -66,24 +73,35 @@ int TupleSystem::lindaInput(TuplePattern *pattern, int timeout, Tuple **output)
 int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple **output)
 {
     fd_set set;
-    FD_ZERO(&set);
-    FD_SET(tupleRecvFD, &set);
     struct timeval TimeOut;
     Tuple *tupleAddr;
     int rv;
     
-    pattern->setOperationType(TuplePattern::READ);
+    
+    FD_ZERO(&set);
+    FD_SET(tupleRecvFD, &set);
+    
+    pattern->setOperationType(TuplePattern::INPUT);
     matcher->putPattern(pattern);
+    
     TimeOut.tv_sec = timeout;
     TimeOut.tv_usec = 0;
+    
     rv = select(tupleRecvFD+1, &set, NULL, NULL, &TimeOut);
-    if(rv == -1)
-    {matcher->timeoutOccured();std::cout<< "err"<<std::endl; return 0;}/* an error accured */
-    else if(rv == 0)
-    {matcher->timeoutOccured();std::cout<< "time"<<std::endl;return 0;} /* a timeout occured */
+    if(rv == -1)/* an error accured */
+    {
+        matcher->timeoutOccured(); 
+        return 0;
+        
+    }
+    else if(rv == 0) /* a timeout occured */
+    {
+        matcher->timeoutOccured();
+        return 0;
+        
+    }
     else
       read(tupleRecvFD, &tupleAddr, sizeof(tupleAddr));
     *output = tupleAddr;
-     return 1;
+    return 1;
 }
-
