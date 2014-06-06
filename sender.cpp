@@ -17,7 +17,7 @@ int main(int _argc, char **_argv) {
     tuple.append("asd");
     tuple.append(3);
     while (true){
-        std::cout << "Sending tuple" << std::cout;
+        std::cout << "Sending tuple" << std::endl;
         tupleSystem.lindaOutput(&tuple);
         usleep(5000);
     }
