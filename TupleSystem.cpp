@@ -7,6 +7,11 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
+TupleSystem::~TupleSystem()
+{
+
+}
+
 void TupleSystem::lindaOpen(const char *name)
 {
     int fds[2];
@@ -84,3 +89,4 @@ int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple **output)
     std::cout<< "good"<<std::endl;
     return 1;
 }
+
