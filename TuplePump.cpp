@@ -55,7 +55,6 @@ TuplePump::~TuplePump(void) {
 
 int TuplePump::start(void) {
 	//otworz potoki, stworz nowy watek,w masce ustaw brak przechwytywania jakichkolwiek sygnalow
-	std::cout<< "strat" <<std::endl;
 	if (!correctlyInitialized) {
 		stop();
 		return -1;
@@ -121,7 +120,6 @@ void *TuplePump::_run(void *ptr) {
 	fd_set readSet;
 
 	do {
-		std::cout<< "petla"<<std::cout;
 		FD_ZERO(&readSet);
 
 		FD_SET(pump->fifoFD, &readSet);
@@ -136,10 +134,10 @@ void *TuplePump::_run(void *ptr) {
 		sel = select(maxFD + 1, &readSet, NULL, NULL, &tv);
 
 		if (sel < 0) {
-			std::fprintf(stderr, "select error\n");
+		//	std::fprintf(stderr, "select error\n");
 			return ptr;
 		} else if (sel == 0) {
-			std::fprintf(stderr, "timeout\n");
+			//std::fprintf(stderr, "timeout\n");
 		} else {
 			if (FD_ISSET(pump->tupleFD, &readSet)) {
 				//odbierz krotke do wyslania w przestrzen
@@ -162,7 +160,7 @@ void *TuplePump::_run(void *ptr) {
 			}
 			if (FD_ISSET(pump->fifoFD, &readSet)) {
 				//standardowe przepompowywanie krotek
-				std::fprintf(stderr, "pobrano krotke\n");
+				//std::fprintf(stderr, "pobrano krotke\n");
 
 				//pobierz krotke z przestrzeni
 				read(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
@@ -175,11 +173,9 @@ void *TuplePump::_run(void *ptr) {
 					std::memcpy(&ttl, buf, sizeof(int));
 					--ttl;
 					if(ttl > 0) {
-						std::fprintf(stderr, "wrzucono krotke, pozostaly TTL krotki: %d\n", ttl);
 						std::memcpy(buf, &ttl, sizeof(int));
 						write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 					} else {
-						std::fprintf(stderr, "uplynal TTL krotki\n");
 					}
 				}
 				
@@ -218,7 +214,6 @@ void TuplePump::stop(void) {
 void TuplePump::putTuple(Tuple *t) {
 	unsigned char buf[BINARY_TUPLE_LENGTH];
 	std::memset(buf, 0, BINARY_TUPLE_LENGTH);//[PH]
-	std::cout<< "wrzucam" <<std::endl;
 
 	//utworz pakiet krotki i wpisz go do bufora, a wartosc TTL ustaw na DEFAULT_TTL
 	t->getBinaryRepresentation(buf, DEFAULT_TTL); //NYI

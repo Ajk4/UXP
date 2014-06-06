@@ -16,7 +16,6 @@ TupleMatcher::TupleMatcher(int tupleSendFD)
 
 int TupleMatcher::match(unsigned char *binaryTuple)
 {
-	std::cout<< "mather"<<std::endl;
 	int i;
 	char type;
 	bool CheckResult = true;
@@ -37,7 +36,6 @@ int TupleMatcher::match(unsigned char *binaryTuple)
 		else if(pattern->elements[i]->dataType == type)
 		{
 			if(type == UNKNOWN ) break;
-			std::cout<< "typ: "<< (int)type<<std::endl;
 				switch(type)
 				{
 					case(STRING) 	: CheckResult = CheckString(binaryTuple, pattern->elements[i]->str, pattern->elements[i]->relOP); break; 
@@ -48,9 +46,9 @@ int TupleMatcher::match(unsigned char *binaryTuple)
 			{
 				switch(type)
 				{
-				  case(STRING)	: std::cout<< "dodano String"<<std::endl;tuple->append(pattern->elements[i]->str); break;
-					case(INT)	: std::cout<< "dodano int"<<std::endl;tuple->append(pattern->elements[i]->i); break;
-					case(FLOAT)	: std::cout<< "dodano float"<<std::endl;tuple->append(pattern->elements[i]->f); break;
+				  case(STRING)	: tuple->append(pattern->elements[i]->str); break;
+					case(INT)	: tuple->append(pattern->elements[i]->i); break;
+					case(FLOAT)	: tuple->append(pattern->elements[i]->f); break;
 				}
 				binaryTuple += MAX_STRING_LEN;
 				continue;
@@ -101,7 +99,6 @@ void TupleMatcher::putPattern(TuplePattern *pattern)
 
 void TupleMatcher::timeoutOccured(void)
 {
-	std::cout<< "zeruje" <<std::endl;
 	mtx.lock();
 	pattern = NULL;
 	mtx.unlock();

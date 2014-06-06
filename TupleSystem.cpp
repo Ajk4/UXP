@@ -59,7 +59,6 @@ int TupleSystem::lindaInput(TuplePattern *pattern, int timeout, Tuple **output)
     {matcher->timeoutOccured();std::cout<< "time"<<std::endl; return 0;} /* a timeout occured */
     else
       read(tupleRecvFD, &tupleAddr, sizeof(tupleAddr));
-    std::cout<< "good"<<std::endl;
     *output = tupleAddr;
     return 1;
 }
@@ -77,7 +76,6 @@ int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple **output)
     matcher->putPattern(pattern);
     TimeOut.tv_sec = timeout;
     TimeOut.tv_usec = 0;
-    std::cout<< "select"<<std::endl;
     rv = select(tupleRecvFD+1, &set, NULL, NULL, &TimeOut);
     if(rv == -1)
     {matcher->timeoutOccured();std::cout<< "err"<<std::endl; return 0;}/* an error accured */
@@ -86,7 +84,6 @@ int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple **output)
     else
       read(tupleRecvFD, &tupleAddr, sizeof(tupleAddr));
     *output = tupleAddr;
-    std::cout<< "good"<<std::endl;
-    return 1;
+     return 1;
 }
 
