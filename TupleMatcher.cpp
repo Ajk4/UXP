@@ -9,7 +9,7 @@ TupleMatcher::TupleMatcher(int tupleSendFD)
 {
 	this->tupleSendFD = tupleSendFD;
 	pattern = NULL;
-	tuple == NULL;	
+	tuple = NULL;
 }
 
 

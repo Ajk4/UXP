@@ -26,7 +26,7 @@ private:
 
 	//przechowuje elementy krotki
 	TupleElement *elements[TUPLE_ELEMENTS];
-    int actualTupleIndex = 0;
+    int actualTupleIndex;
 
 public:
 	Tuple(void);
