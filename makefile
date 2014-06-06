@@ -21,9 +21,6 @@ TuplePattern.o:
 	
 TuplePump.o:
 	$(CC) $(CFLAGS) -c TuplePump.cpp
-	
-TupleSystem.o:
-	$(CC) $(CFLAGS) -c TupleSystem.cpp
-	
+		
 clean:
 	rm *.o

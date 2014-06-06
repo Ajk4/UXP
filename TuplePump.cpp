@@ -162,6 +162,7 @@ void *TuplePump::_run(void *ptr) {
 			}
 			if (FD_ISSET(pump->fifoFD, &readSet)) {
 				//standardowe przepompowywanie krotek
+				std::fprintf(stderr, "pobrano krotke\n");
 
 				//pobierz krotke z przestrzeni
 				read(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
@@ -174,8 +175,11 @@ void *TuplePump::_run(void *ptr) {
 					std::memcpy(&ttl, buf, sizeof(int));
 					--ttl;
 					if(ttl > 0) {
+						std::fprintf(stderr, "wrzucono krotke, pozostaly TTL krotki: %d\n", ttl);
 						std::memcpy(buf, &ttl, sizeof(int));
 						write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
+					} else {
+						std::fprintf(stderr, "uplynal TTL krotki\n");
 					}
 				}
 				

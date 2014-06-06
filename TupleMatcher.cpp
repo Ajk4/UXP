@@ -23,7 +23,7 @@ int TupleMatcher::match(unsigned char *binaryTuple)
 	tuple = new Tuple();
 	mtx.lock();
 	if( pattern == NULL ) 
-	{mtx.unlock();return -90;}
+	{mtx.unlock();return -1;}
 	
 	/*rozpoczyna proces sprawdzania*/
 	/*pomijam TTL*/
