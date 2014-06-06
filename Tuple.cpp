@@ -2,11 +2,16 @@
 #include <cstring>
 Tuple::Tuple()
 {
-	 actualTupleIndex = 0;
+	actualTupleIndex = 0;
+	for(int i = 0; i < TUPLE_ELEMENTS ; ++i) {
+		elements[i] = NULL;
+	}
 }
 Tuple::~Tuple()
 {
-  
+	for(int i = 0; i < actualTupleIndex ; ++i) {
+		delete elements[i];
+	}
 }
 int Tuple::append(const std::string &value)
 {

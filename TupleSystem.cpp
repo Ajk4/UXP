@@ -45,8 +45,8 @@ int TupleSystem::lindaInput(TuplePattern *pattern, int timeout, Tuple **output)
     
     pattern->setOperationType(TuplePattern::INPUT);
     matcher->putPattern(pattern);
-    TimeOut.tv_sec = 0;
-    TimeOut.tv_usec = timeout*1000000;
+    TimeOut.tv_sec = timeout;
+    TimeOut.tv_usec = 0;
     rv = select(tupleRecvFD+1, &set, NULL, NULL, &TimeOut);
     if(rv == -1)
     {matcher->timeoutOccured();std::cout<< "err"<<std::endl; return 0;}/* an error accured */
@@ -70,8 +70,8 @@ int TupleSystem::lindaRead(TuplePattern *pattern, int timeout, Tuple **output)
     
     pattern->setOperationType(TuplePattern::READ);
     matcher->putPattern(pattern);
-    TimeOut.tv_sec = 0;
-    TimeOut.tv_usec = timeout*1000000;
+    TimeOut.tv_sec = timeout;
+    TimeOut.tv_usec = 0;
     std::cout<< "select"<<std::endl;
     rv = select(tupleRecvFD+1, &set, NULL, NULL, &TimeOut);
     if(rv == -1)

@@ -20,7 +20,7 @@ class TuplePattern {
 	//typ operacji jaki jest niesiony z wzorcem
 	int operation;
 
-    int actualElementIndex = 0;
+    int actualElementIndex;
 
 	//ustawia typ operacji dla wzorca
 	void setOperationType(int op);
@@ -44,6 +44,9 @@ public:
     int appendString(relOp op, std::string value = INVALID_STRING);
     int appendInt(relOp op, int value = INVALID_INT);
     int appendFloat(relOp op, float value = INVALID_FLOAT);
+
+    TuplePattern(void);
+    ~TuplePattern(void);
 };
 
 /**

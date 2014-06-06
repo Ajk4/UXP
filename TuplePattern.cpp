@@ -1,5 +1,19 @@
 #include "TuplePattern.h"
 
+TuplePattern::TuplePattern() {
+	operation = relOp::ANY;
+	actualElementIndex = 0;
+	for(int i = 0; i < TUPLE_ELEMENTS ; ++i) {
+		elements[i] = NULL;
+	}
+}
+
+TuplePattern::~TuplePattern()
+{
+	for(int i = 0; i < actualElementIndex ; ++i) {
+		delete elements[i];
+	}
+}
 
 void TuplePattern::setOperationType(int op)
 {
