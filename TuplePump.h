@@ -73,7 +73,7 @@ public:
 	/**
 	 * Umieszcza krotke w przestrzeni.
 	 */
-	void putTuple(const Tuple *t);
+	void putTuple(Tuple *t);
 };
 
 #endif

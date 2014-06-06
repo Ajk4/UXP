@@ -11,6 +11,10 @@
 #include <cstdio>
 #include <cstring>
 
+
+
+#include <iostream>
+
 #define PERMS 0666
 #define LOOP_SLEEP_TIME_USEC 50000
 
@@ -51,7 +55,7 @@ TuplePump::~TuplePump(void) {
 
 int TuplePump::start(void) {
 	//otworz potoki, stworz nowy watek,w masce ustaw brak przechwytywania jakichkolwiek sygnalow
-
+	std::cout<< "strat" <<std::endl;
 	if (!correctlyInitialized) {
 		stop();
 		return -1;
@@ -61,6 +65,7 @@ int TuplePump::start(void) {
 	bool start = true;
 
 	if ((tupleFD = open(tupleName.c_str(), O_RDWR)) < 0) {
+		
 		std::fprintf(stderr, "nie mozna otworzyc FIFO wewnetrznego: %s\n",
 				tupleName.c_str());
 		start = false;
@@ -92,6 +97,7 @@ int TuplePump::start(void) {
 
 	if (!start) {
 		std::fprintf(stderr, "Wystapily bledy, nie mozna wystartowac\n");
+		
 		return -1;
 	}
 
@@ -99,9 +105,9 @@ int TuplePump::start(void) {
 }
 
 void *TuplePump::_run(void *ptr) {
-
+	
 	auto pump = (TuplePump*) ptr;
-
+	
 	//znajdz deskryptor o najwieszej wartosci dla funkcji select
 	int maxFD =
 			pump->fifoFD > pump->infoFD ?
@@ -115,7 +121,7 @@ void *TuplePump::_run(void *ptr) {
 	fd_set readSet;
 
 	do {
-
+		std::cout<< "petla"<<std::cout;
 		FD_ZERO(&readSet);
 
 		FD_SET(pump->fifoFD, &readSet);
@@ -154,7 +160,6 @@ void *TuplePump::_run(void *ptr) {
 				}
 
 			}
-
 			if (FD_ISSET(pump->fifoFD, &readSet)) {
 				//standardowe przepompowywanie krotek
 
@@ -162,7 +167,7 @@ void *TuplePump::_run(void *ptr) {
 				read(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 
 				//wyslij na dopasowanie do matchera [NYI]
-				/*int result = pump->matcher->match(buf);
+				int result = pump->matcher->match(buf);
 				if(result == -1 || result == 1) { //operacja jest brak dopasowania lub read
 				//zmniejsz TTL i wyslij krotke do przestrzeni jesli mozna
 					int ttl;
@@ -173,9 +178,10 @@ void *TuplePump::_run(void *ptr) {
 						write(pump->fifoFD, buf, BINARY_TUPLE_LENGTH);
 					}
 				}
-				*/
+				
 
 			}
+			//else{std::cout<< "aasdsadasd" <<std::endl;}
 
 			//loop sleep
 			usleep(LOOP_SLEEP_TIME_USEC);
@@ -205,12 +211,13 @@ void TuplePump::stop(void) {
 	unlink(name.c_str());
 }
 
-void TuplePump::putTuple(const Tuple *t) {
+void TuplePump::putTuple(Tuple *t) {
 	unsigned char buf[BINARY_TUPLE_LENGTH];
 	std::memset(buf, 0, BINARY_TUPLE_LENGTH);//[PH]
+	std::cout<< "wrzucam" <<std::endl;
 
 	//utworz pakiet krotki i wpisz go do bufora, a wartosc TTL ustaw na DEFAULT_TTL
-	//t->getBinaryRepresentation(buf, DEFAULT_TTL); //NYI
+	t->getBinaryRepresentation(buf, DEFAULT_TTL); //NYI
 
 	write(tupleFD, buf, BINARY_TUPLE_LENGTH);
 

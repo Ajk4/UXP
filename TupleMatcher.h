@@ -3,6 +3,7 @@
 
 #include "TuplePattern.h"
 #include "Tuple.h"
+#include <mutex>
 class TuplePattern;
 class Tuple;
 /*
@@ -30,6 +31,9 @@ class TupleMatcher {
 	int patternFD [2];
 
 	bool RelationResult(int CompareResult, int patternOperator);
+	
+	/*Mutex to protect critical section*/
+	std::mutex mtx;
 
 public:
 	TupleMatcher(int tupleSendFD);

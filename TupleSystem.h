@@ -19,7 +19,7 @@ private:
 	//poprzez FIFO/pipe pokazywane przez ten deskryptor przyjdzie krotka
 	int tupleRecvFD;
 
-    unsigned char tupleAddrBuff[ADDR_SIZE];
+	unsigned char tupleAddrBuff[ADDR_SIZE];
 
 	TupleMatcher *matcher;
 	TuplePump *pump;
