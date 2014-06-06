@@ -129,7 +129,7 @@ void funkcja1(const int id)
         mtx.unlock();
         
         sys->lindaOutput(tuple);
-        sleep(3)
+        sleep(3);
     }
 }
 
@@ -192,7 +192,7 @@ void funkcja3(const int id)
         std::cout<< std::endl;
         mtx.unlock();
         sys->lindaOutput(tuple);
-        sleep(3)
+        sleep(3);
     }
 }
 
@@ -213,7 +213,7 @@ void funkcja4(const int id)
         mtx.unlock();
         sys->lindaOutput(tuple);
         
-        sleep(3)
+        sleep(3);
     }
 }
 

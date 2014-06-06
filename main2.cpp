@@ -4,6 +4,7 @@
 #include <cstring>
 #include <mutex>
 #include <unistd.h>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 
 std::mutex mtx;
 
@@ -16,8 +17,11 @@ int main(int argc, char **argv) {
         t.append(2.0f);
         t.append("ke");
 
+        std::cout << "Send tuple [2.0, 'ke']" << std::endl;
+
         sys.lindaOutput(&t);
         sys.lindaClose();
+        return 0;
     }
     if(fork()){
         TupleSystem sys;
@@ -28,8 +32,11 @@ int main(int argc, char **argv) {
         t.append("ke");
         t.append(33);
 
+        std::cout << "Send tuple [2.0, 'ke', 33]" << std::endl;
+
         sys.lindaOutput(&t);
         sys.lindaClose();
+        return 0;
     }
     if(fork()){
         TupleSystem sys;
@@ -40,10 +47,12 @@ int main(int argc, char **argv) {
         t.append("ke");
         t.append(33);
 
+        std::cout << "Send tuple ['wat', 'ke', 33]" << std::endl;
+
         sys.lindaOutput(&t);
         sys.lindaClose();
+        return 0;
     }
-
 
     {
         TupleSystem sys;
@@ -58,6 +67,8 @@ int main(int argc, char **argv) {
 
         sys.lindaRead(&p, 5, &output);
         sys.lindaClose();
+
+        std::cout << "Read pattern [STR:*, STR:*, INT:*]" << std::endl;
     }
 
     {
@@ -70,8 +81,10 @@ int main(int argc, char **argv) {
 
         Tuple *output = NULL;
 
-        sys.lindaRead(&p, 5, &output);
+        sys.lindsaRead(&p, 5, &output);
         sys.lindaClose();
+
+        std::cout << "Read pattern [FLO:*, STR:*]" << std::endl;
     }
 
 }
